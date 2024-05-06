@@ -3,6 +3,7 @@ import indexRouter from '@/routes/index';
 import categoryRouter from '@/routes/category';
 import projectRouter from '@/routes/project';
 import commentRouter from '@/routes/comment';
+import agencyRouter from '@/routes/agency';
 
 export default function (app) {
   app.use('/', indexRouter);
@@ -10,4 +11,5 @@ export default function (app) {
   app.use('/api/v1/category', categoryRouter);
   app.use('/api/v1/projects', projectRouter);
   app.use('/api/v1/comment', commentRouter);
+  app.use('/api/v1/agency', agencyRouter);
 }
