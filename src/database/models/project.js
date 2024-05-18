@@ -3,7 +3,6 @@
 const {
   Model, DataTypes,
 } = require('sequelize');
-const agency = require('./agency');
 
 module.exports = (sequelize) => {
   class project extends Model {
@@ -14,17 +13,17 @@ module.exports = (sequelize) => {
      */
     static associate(models) {
       // define association here
-      project.belongsToMany(models.user, {
-        through: models.projectMember,
-        foreignKey: 'projectId',
-        otherKey: 'userId',
-      });
+      // project.belongsToMany(models.user, {
+      //   through: models.projectMember,
+      //   foreignKey: 'projectId',
+      //   otherKey: 'userId',
+      // });
       project.hasMany(models.projectFile, { foreignKey: 'projectId' });
-      project.belongsToMany(models.user, {
-        through: models.projectMember,
-        foreignKey: 'projectId',
-        otherKey: 'userId',
-      });
+      // project.belongsToMany(models.user, {
+      //   through: models.projectMember,
+      //   foreignKey: 'projectId',
+      //   otherKey: 'userId',
+      // });
       project.belongsToMany(models.point, {
         through: models.projectPoint,
         foreignKey: 'projectId',
@@ -32,10 +31,10 @@ module.exports = (sequelize) => {
       });
       project.belongsToMany(models.category, {
         through: models.projectCategory,
-        foreignKey: 'projectId',
-        otherKey: 'categoryId',
+        foreignKey: 'projectId', // This should match the foreign key in the join table
+        otherKey: 'categoryId', // This should match the foreign key in the join table
       });
-      project.belongsTo(models.user, { foreignKey: 'userId' });
+      project.belongsTo(models.user, { foreignKey: 'createdBy' });
       project.belongsTo(models.agency, { foreignKey: 'agencyId' });
       // project.hasMany(models.projectUser, {
       //   foreignKey: 'projectId',
@@ -84,6 +83,11 @@ module.exports = (sequelize) => {
     updatedBy: DataTypes.UUID,
     deletedBy: DataTypes.UUID,
     agencyId: DataTypes.UUID,
+    projectId: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      allowNull: false,
+    },
   }, {
     sequelize,
     modelName: 'project',

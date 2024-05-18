@@ -8,6 +8,7 @@ import AppResponseDto from '@/dtos/responses/app.response.dto';
 import AgencyResponseDto from '@/dtos/responses/agency.response.dto';
 
 exports.createAgency = (req, res) => {
+  console.log(req.body);
   const url = '/public';
   const bindingResult = AgencyRequestDto.createAgencyRequestDto(req);
   if (!_.isEmpty(bindingResult.errors)) {
@@ -30,10 +31,11 @@ exports.createAgency = (req, res) => {
       // eslint-disable-next-line no-plusplus
       for (let i = 0; req.files != null && i < req.files.length; i++) {
         const file = req.files[i];
-        const filePath = file.path.replace('public', url);
+        let filePath = file.path.replace(new RegExp('\\\\', 'g'), '/');
+        filePath = file.path.replace('public', url);
         logoPath.push(filePath);
       }
-      agency.update({ logoUrl: logoPath }).then((r) => console.log('Updated', r));
+      agency.update({ logoUrl: logoPath[0] }).then((r) => console.log('Updated', r));
       res.status(201).json(AgencyResponseDto.registerDto(agency));
     }).catch((err) => {
       res.status(500).json(AppResponseDto.buildWithErrorMessages(err));

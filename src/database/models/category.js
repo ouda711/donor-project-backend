@@ -14,8 +14,8 @@ export default (sequelize) => {
       // define association here
       category.belongsToMany(models.project, {
         through: models.projectCategory,
-        foreignKey: 'categoryId',
-        otherKey: 'projectId',
+        foreignKey: 'categoryId', // This should match the foreign key in the join table
+        otherKey: 'projectId', // This should match the foreign key in the join table
       });
     }
   }

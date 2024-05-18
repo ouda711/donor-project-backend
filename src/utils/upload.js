@@ -1,6 +1,6 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
-const multer = require('multer');
-const fs = require('fs');
+import multer from 'multer';
+// import sharp from 'sharp';
+import fs from 'fs';
 
 const storage = multer.diskStorage({
   destination(req, file, callback) {
@@ -12,8 +12,7 @@ const storage = multer.diskStorage({
     const parts = file.originalname.split('.');
     const extension = parts[parts.length - 1];
     let fileName = `${file.fieldname}-${Date.now()}`;
-    // eslint-disable-next-line max-len
-    if (extension === 'png' || extension === 'jpeg' || extension === 'jpg' || extension === 'svg') fileName += `.${extension}`;
+    if (extension === 'png' || extension === 'jpeg' || extension === 'jpg') fileName += `.${extension}`;
 
     callback(null, fileName);
   },
@@ -21,4 +20,5 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-module.exports = { upload };
+// eslint-disable-next-line import/prefer-default-export
+export { upload };

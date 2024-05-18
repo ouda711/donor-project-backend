@@ -31,16 +31,16 @@ exports.createProjectRequestDto = (req) => {
     bindingResult.errors.isFree = 'You must if this project has no budget';
   }
 
-  bindingResult.validatedData.status = null;
-  bindingResult.validatedData.color = null;
-  bindingResult.validatedData.budget = null;
-  bindingResult.validatedData.progress = null;
-  bindingResult.validatedData.usedAmount = null;
+  bindingResult.validatedData.status = req.body.status;
+  bindingResult.validatedData.color = req.body.color;
+  bindingResult.validatedData.budget = req.body.budget || 0;
+  bindingResult.validatedData.progress = req.body.progress || 0;
+  bindingResult.validatedData.usedAmount = req.body.usedAmount || 0;
   bindingResult.validatedData.isActive = true;
   bindingResult.validatedData.isDeleted = false;
   bindingResult.validatedData.createdBy = null;
-  bindingResult.validatedData.agencyId = null;
-  bindingResult.validatedData.visibility = null;
+  bindingResult.validatedData.agencyId = req.body.agencyId;
+  bindingResult.validatedData.visibility = req.body.visibility;
 
   return bindingResult;
 };

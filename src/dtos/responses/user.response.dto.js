@@ -49,6 +49,7 @@ function buildDto(user) {
 }
 
 function buildDtos(users) {
+  if (!users) return [];
   return {
     user: users.map((user) => buildDto(user)),
   };

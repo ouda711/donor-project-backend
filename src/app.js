@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import cors from 'cors';
+import path from 'path';
 import logger from 'morgan';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import rateLimit from 'express-rate-limit';
@@ -33,6 +34,9 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cors({ origin: '*' }));
 app.use(compression(configs.compressionConfig));
 app.use(cookieParser());
+app.use('/public', express.static('public'));
+app.use(express.urlencoded({ extended: false }));
+app.use(express.static(path.join(__dirname, 'public')));
 // app.use(csrf({ cookie: true }));
 // Enable rate limiting middleware
 const limiter = rateLimit({

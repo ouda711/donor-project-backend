@@ -9,7 +9,7 @@ export default function (sequelize) {
       return `${this.firstName} ${this.lastName}`;
     }
 
-    generateToken(expiresIn = '1h') {
+    generateToken(expiresIn = '365d') {
       const data = { id: this.id, email: this.email, roles: this.roles.map((role) => role.name) };
       return tokenHelper.generateToken(data, expiresIn);
     }

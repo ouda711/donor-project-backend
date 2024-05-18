@@ -96,6 +96,10 @@ module.exports = {
         allowNull: true,
         type: Sequelize.DATE,
       },
+      projectId: {
+        type: Sequelize.UUID,
+        defaultValue: Sequelize.UUIDV4,
+      },
     });
   },
   async down(queryInterface, Sequelize) {

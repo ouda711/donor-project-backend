@@ -4,11 +4,11 @@ import AppResponseDto from '@/dtos/responses/app.response.dto';
 function init(router) {
   // place the product in the request object when :product_id is present in path
   router.param('projectId', (req, res, next) => {
-    req.query = { id: req.params.projectId };
+    req.query = { where: { id: req.params.projectId } };
     next();
   });
 
-  router.param('projetct_load_ids', async (req, res, next, id) => {
+  router.param('project_load_ids', async (req, res, next, id) => {
     const query = { attributes: ['id'] };
     query.where = { id };
 

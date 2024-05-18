@@ -7,6 +7,7 @@ import CommentsDto from './comment.response.dto';
 import AgencyDto from './agency.response.dto';
 
 function buildDto(product) {
+  console.log(product.projectFiles);
   return {
     id: product.id,
     name: product.name,
@@ -24,7 +25,7 @@ function buildDto(product) {
     createdBy: UserDto.buildBasicInfo(product.createdBy),
     updatedBy: UserDto.buildBasicInfo(product.updatedBy),
     deletedBy: UserDto.buildBasicInfo(product.deletedBy),
-    file_urls: product.files ? product.images.map((image) => image.filePath) : [],
+    file_urls: product.projectFiles ? product.projectFiles.map((image) => image.filePath) : [],
     created_at: product.createdAt,
     updated_at: product.updatedAt,
     ...UserDto.buildDtos(product.users),
