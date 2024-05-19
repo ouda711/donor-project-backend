@@ -3,9 +3,11 @@ import UserDto from './user.response.dto';
 import PageMetaDto from './page.meta.response.dto';
 
 function buildDto(comment, includeUser = false, includeProduct = false) {
+  console.log(comment);
   const summary = {
     id: comment.id,
     content: comment.content,
+    projectId: comment.projectId,
   };
 
   if (includeProduct && comment.product) {
@@ -16,7 +18,7 @@ function buildDto(comment, includeUser = false, includeProduct = false) {
     };
   }
 
-  if (includeUser && comment.user) summary.user = UserDto.buildOnlyForIdAndUsername(comment.user);
+  if (includeUser && comment.user) summary.user = UserDto.buildBasicInfo(comment.user);
 
   return summary;
 }

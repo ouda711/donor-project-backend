@@ -25,7 +25,7 @@ function buildDto(product) {
     createdBy: UserDto.buildBasicInfo(product.createdBy),
     updatedBy: UserDto.buildBasicInfo(product.updatedBy),
     deletedBy: UserDto.buildBasicInfo(product.deletedBy),
-    file_urls: product.projectFiles ? product.projectFiles.map((image) => image.filePath) : [],
+    file_urls: product.projectFiles ? product.projectFiles : [],
     created_at: product.createdAt,
     updated_at: product.updatedAt,
     ...UserDto.buildDtos(product.users),

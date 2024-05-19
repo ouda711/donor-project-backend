@@ -1,15 +1,15 @@
 const { sanitizeInput } = require('@/helpers/sanitize');
 
-exports.createCommentDto = (input) => {
+exports.createCommentDto = (req) => {
   const resultBinding = {
     validatedData: {},
     errors: {},
   };
 
-  if (input.content && input.content.trim() !== '') {
+  if (req.content && req.content.trim() !== '') {
     resultBinding.errors.content = 'a content for your comment is required';
   } else {
-    resultBinding.validatedData.email = sanitizeInput(input.content);
+    resultBinding.validatedData.content = sanitizeInput(req.content);
   }
 
   return resultBinding;

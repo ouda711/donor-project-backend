@@ -28,19 +28,22 @@ exports.getCommentsFromProject = (req, res) => {
   }).catch((err) => res.json(AppResponseDto.buildSuccessWithMessages(err.message)));
 };
 
-exports.createComment = (req, res) => {
+exports.createComment = async (req, res) => {
   const bindingResult = CommentRequestDto.createCommentDto(req.body);
-  if (!_.isEmpty(bindingResult.errors)) {
-    return res.json(AppResponseDto.buildWithErrorMessages(bindingResult.errors));
-  }
+  // if (!_.isEmpty(bindingResult.errors)) {
+  //   return res.json(AppResponseDto.buildWithErrorMessages(bindingResult.errors));
+  // }
 
-  db.models.comment.create({
-    productId: req.product_id,
+  await db.models.comment.create({
+    projectId: req.params.projectId,
     userId: req.user.id,
     content: req.body.content,
   }).then((comment) => {
     res.json(CommentResponseDto.buildDetails(comment, false, false));
-  }).catch((err) => res.json(AppResponseDto.buildWithErrorMessages(err.message)));
+  }).catch((err) => {
+    console.log(err);
+    res.json(AppResponseDto.buildWithErrorMessages(err));
+  });
 };
 
 exports.deleteComment = (req, res) => {

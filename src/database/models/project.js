@@ -19,6 +19,7 @@ module.exports = (sequelize) => {
       //   otherKey: 'userId',
       // });
       project.hasMany(models.projectFile, { foreignKey: 'projectId' });
+      project.hasMany(models.comment, { foreignKey: 'projectId' });
       // project.belongsToMany(models.user, {
       //   through: models.projectMember,
       //   foreignKey: 'projectId',

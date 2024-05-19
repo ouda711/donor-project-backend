@@ -17,5 +17,6 @@ router.get('/all', projectController.getAll);
 router.post('/create',
   isAuthenticated,
   setUploadPath('./public/images/projects'), upload.array('images', 6), projectController.createProject);
+router.get('/project-files/:projectId', projectController.getProjectFiles);
 
 export default router;

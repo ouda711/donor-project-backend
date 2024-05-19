@@ -12,7 +12,7 @@ router.get('/projects/:product_load_ids/comments', isAuthenticated, commentsCont
 router.get('/projects/by_id/:product_load_ids/comments', isAuthenticated, commentsController.getCommentsFromProject);
 router.get('/comments/:comment', isAuthenticated, commentsController.getCommentDetails);
 
-router.post('/projects/:product_load_ids/comments', isAuthenticated, commentsController.createComment);
+router.post('/projects/:projectId/comments', isAuthenticated, commentsController.createComment);
 router.delete('/projects/:skip/comments/:comment_load_ids', isAuthenticated, commentsController.deleteComment);
 router.delete('/comments/:comment_load_ids', isAuthenticated, commentsController.deleteComment);
 

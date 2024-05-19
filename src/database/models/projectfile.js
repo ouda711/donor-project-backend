@@ -28,10 +28,6 @@ module.exports = (sequelize) => {
     originalName: DataTypes.STRING,
     fileSize: DataTypes.INTEGER,
     projectId: DataTypes.UUID,
-    deletedAt: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-    },
   }, {
     sequelize,
     modelName: 'projectFile',

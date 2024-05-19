@@ -186,15 +186,18 @@ exports.createProject = async (req, res) => {
   try {
     transaction = await sequelize.transaction();
 
-    const categories = req.body.categories || [];
+    const category = req.body.category || null; // Single string entry
     const points = req.body.points || [];
 
-    const categoryPromises = categories.map((name) => db.models.category.findOrCreate({
-      where: { name },
-      defaults: { description: categories[name] },
-    }));
+    // Handle category as a single entry
+    const categoryPromise = category
+      ? await db.models.category.findOrCreate({
+        where: { name: category },
+        defaults: { description: 'Test description' },
+      })
+      : [null];
 
-    const pointPromises = Object.keys(points).map((name) => db.models.point.findOrCreate({
+    const pointPromises = points.map((name) => db.models.point.findOrCreate({
       where: { name },
     }));
 
@@ -219,44 +222,104 @@ exports.createProject = async (req, res) => {
 
     const projectPromise = db.models.project.create(projectData, { transaction });
 
-    const results = await Promise.all([...categoryPromises, ...pointPromises, projectPromise]);
+    const results = await Promise.all([categoryPromise, ...pointPromises, projectPromise]);
 
     const createdProject = results.pop();
+    const createdCategory = results[0] ? results[0][0] : null;
+    const createdPoints = results.slice(1).map((result) => result[0]);
 
-    const createdCategories = results.slice(0, categories.length).map((result) => result[0]);
-    const createdPoints = results.slice(categories.length).map((result) => result[0]);
+    if (createdCategory) {
+      await createdProject.setCategories([createdCategory], { transaction });
+    }
 
-    await Promise.all([
-      createdProject.setCategories(createdCategories, { transaction }),
-      // createdProject.setPoints(createdPoints, { transaction }),
-    ]);
+    await createdProject.setPoints(createdPoints, { transaction });
 
     if (req.files) {
       const filePromises = req.files.map((file) => {
         const filePath = file.path.replace(/\\/g, '/').replace('public', '');
-        return db.models.projectFile.create({
-          fileName: file.filename,
-          filePath,
-          originalName: file.originalname,
-          fileSize: file.size,
-          projectId: createdProject.id,
-        }, { transaction });
+        return db.models.projectFile.create(
+          {
+            fileName: file.filename,
+            filePath,
+            originalName: file.originalname,
+            fileSize: file.size,
+            projectId: createdProject.id,
+          },
+          { transaction },
+        );
       });
       await Promise.all(filePromises);
     }
 
     await transaction.commit();
 
-    // const projectDto = ProjectResponseDto.buildDto(createdProject);
-    return res.json(createdProject);
+    // Build and return the project DTO
+    const projectDto = ProjectResponseDto.buildDto(createdProject);
+    return res.json(AppResponseDto.buildWithDtoAndMessages(projectDto, 'Project created successfully'));
   } catch (error) {
-    // if (transaction) await transaction.rollback();
+    if (transaction) await transaction.rollback();
     console.error('Error creating project:', error);
     return res.json(AppResponseDto.buildWithErrorMessages(error.message));
   }
 };
 
 exports.getAll = async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const pageSize = parseInt(req.query.pageSize) || 10;
+
+  try {
+    const projects = await db.models.project.findAll({
+      order: [['createdAt', 'DESC']],
+      attributes: [
+        'id', 'name', 'description', 'status', 'color', 'dueDate', 'startDate',
+        'isFree', 'budget', 'progress', 'usedAmount', 'isActive', 'isDeleted',
+        'createdBy', 'updatedBy', 'deletedBy', 'agencyId', 'createdAt', 'updatedAt', 'deletedAt',
+      ],
+      include: [
+        { model: db.models.category, attributes: ['id', 'name'] },
+        { model: db.models.point, attributes: ['id', 'content'] },
+        { model: db.models.user },
+        { model: db.models.projectFile },
+        { model: db.models.agency },
+      ],
+      offset: (page - 1) * pageSize,
+      limit: pageSize,
+    });
+
+    const projectsCount = await db.models.project.count();
+
+    const projectIds = projects.map((project) => project.id);
+    const comments = await db.models.comment.findAll({
+      where: {
+        projectId: {
+          [Op.in]: projectIds,
+        },
+      },
+      attributes: [
+        'projectId',
+        [sequelize.fn('COUNT', sequelize.col('id')), 'commentsCount'],
+      ],
+      group: ['projectId'],
+    });
+
+    const commentsMap = comments.reduce((map, comment) => {
+      map[comment.projectId] = comment.get('commentsCount');
+      return map;
+    }, {});
+
+    projects.forEach((project) => {
+      project.dataValues.comments_count = commentsMap[project.id] || 0;
+    });
+
+    console.log(projects);
+    res.json(ProjectResponseDto.buildPagedList(projects, page, pageSize, projectsCount, req.baseUrl));
+  } catch (err) {
+    console.error(err);
+    res.status(400).json(AppResponseDto.buildWithErrorMessages(err.message));
+  }
+};
+
+exports.getLastestProjects = async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const pageSize = parseInt(req.query.pageSize) || 10;
 
@@ -320,6 +383,12 @@ exports.getById = (req, res, next) => {
         attributes: ['id', 'name'],
       },
       {
+        model: db.models.comment,
+        include: [
+          { model: db.models.user },
+        ],
+      },
+      {
         model: db.models.point,
         attributes: ['id', 'content'],
       },
@@ -371,4 +440,18 @@ exports.getByCategory = (req, res, next) => {
     offset,
     limit: pageSize,
   }).then((products) => res.json(ProjectResponseDto.buildPagedList(products.rows, page, pageSize, products.count, req.baseUrl))).catch((err) => res.json(AppResponseDto.buildWithErrorMessages(err.message)));
+};
+
+// eslint-disable-next-line import/prefer-default-export
+export const getProjectFiles = async (req, res) => {
+  try {
+    const files = await db.models.projectFile.findAll({ where: { projectId: req.params.projectId } });
+    if (!files || files.length === 0) {
+      return res.status(404).json({ message: 'No files found for the specified project ID' });
+    }
+    return res.json(files);
+  } catch (error) {
+    console.error('Error fetching project files:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
 };
