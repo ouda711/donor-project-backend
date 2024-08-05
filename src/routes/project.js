@@ -18,5 +18,6 @@ router.post('/create',
   isAuthenticated,
   setUploadPath('./public/images/projects'), upload.array('images', 6), projectController.createProject);
 router.get('/project-files/:projectId', projectController.getProjectFiles);
+router.get('/chart-data', projectController.getChartData);
 
 export default router;
