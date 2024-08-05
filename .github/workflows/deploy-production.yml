@@ -12,31 +12,40 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
         with:
-          node-version: 20
+          token: ${{ secrets.SECRET_TOKEN }}
 
-      - name: Install Dependencies
-        run: npm install
+      - name: Set up Node.js using NVM
+        run: |
+          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
+          source ~/.nvm/nvm.sh
+          nvm install 20
+          nvm use 20
+          node -v
+          npm -v 
 
-      - name: Install pm2
-        run: npm install -g pm2
-
-
-      - name: Build
-        run: npm run build
+      - name: Install dependencies
+        run: |
+          source ~/.nvm/nvm.sh
+          npm install
 
       - name: Deploy to server
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USERNAME }}
-          key: '${{ secrets.SERVER_SSH_KEY }}'
+          key: ${{ secrets.SERVER_SSH_KEY }}
           port: 22
           script: |
-            cd ~/projects/donor-project-backend
+            source ~/.nvm/nvm.sh
+            echo "Listing files in the home directory"
+            ls -la /home/ubuntu
+            echo "Listing files in the project directory"
+            ls -la /home/ubuntu/projects
+            echo "Listing files in the GoChapaa-backend directory"
+            ls -la /home/ubuntu/projects/GoChapaa-backend
+            cd /home/ubuntu/projects/GoChapaa-backend
+            git pull origin main
             npm install
             npx sequelize-cli db:migrate
             npx sequelize-cli db:seed:all
