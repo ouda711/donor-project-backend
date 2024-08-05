@@ -455,3 +455,117 @@ export const getProjectFiles = async (req, res) => {
     return res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+export const getChartData = async (req, res) => {
+  try {
+    // Total Projects Count
+    const totalProjects = await db.models.project.count();
+
+    // New Projects Count
+    const newProjects = await db.models.project.count({ where: { status: 'in-progress' } });
+
+    // Complete Projects Count
+    const completeProjects = await db.models.project.count({ where: { status: 'complete' } });
+
+    // Incomplete Projects Count
+    const incompleteProjects = await db.models.project.count({ where: { status: 'overdue' } });
+
+    // Series Data Query
+    const seriesDataQuery = `
+            SELECT 
+                DATE_TRUNC('month', "createdAt") AS month,
+                status,
+                COUNT(*) AS count
+            FROM "projects"
+            GROUP BY month, status
+            ORDER BY month
+        `;
+
+    const seriesDataResults = await sequelize.query(seriesDataQuery, {
+      type: sequelize.QueryTypes.SELECT,
+    });
+
+    // Total Projects by Month
+    const totalProjectsByMonthQuery = `
+            SELECT 
+                DATE_TRUNC('month', "createdAt") AS month,
+                COUNT(*) AS total
+            FROM "projects"
+            GROUP BY month
+            ORDER BY month
+        `;
+
+    const totalProjectsByMonthResults = await sequelize.query(totalProjectsByMonthQuery, {
+      type: sequelize.QueryTypes.SELECT,
+    });
+
+    // Format series data and calculate percentages
+    const totalProjectsByMonth = totalProjectsByMonthResults.reduce((acc, result) => {
+      acc[result.month] = result.total;
+      return acc;
+    }, {});
+
+    const seriesData = seriesDataResults.reduce((acc, result) => {
+      const month = result.month.toISOString().split('T')[0];
+      const { status } = result;
+
+      if (!acc[status]) {
+        acc[status] = [];
+      }
+
+      const percentageValue = ((result.count / totalProjectsByMonth[month]) * 100).toFixed(2);
+
+      acc[status].push({
+        month,
+        count: result.count,
+        percentageValue,
+      });
+
+      return acc;
+    }, {});
+
+    const chartData = [
+      {
+        id: 1,
+        title: 'Total Projects',
+        price: totalProjects.toString(),
+        percentageValue: '18.89', // This needs to be computed similarly if required
+        badgeColor: 'success',
+        seriesData: seriesData.total || [],
+        color: ['--bs-success', '--bs-transparent'],
+      },
+      {
+        id: 2,
+        title: 'New Projects',
+        price: newProjects.toString(),
+        percentageValue: '24.07', // This needs to be computed similarly if required
+        badgeColor: 'success',
+        seriesData: seriesData['in-progress'] || [],
+        color: ['--bs-success', '--bs-transparent'],
+      },
+      {
+        id: 3,
+        title: 'Complete Projects',
+        price: completeProjects.toString(),
+        percentageValue: '8.41', // This needs to be computed similarly if required
+        badgeColor: 'success',
+        seriesData: seriesData.complete || [],
+        color: ['--bs-success', '--bs-transparent'],
+      },
+      {
+        id: 4,
+        title: 'Incomplete Projects',
+        price: incompleteProjects.toString(),
+        percentageValue: '20.63', // This needs to be computed similarly if required
+        badgeColor: 'danger',
+        isTrendingArrow: true,
+        seriesData: seriesData.overdue || [],
+        color: ['--bs-danger', '--bs-transparent'],
+      },
+    ];
+
+    res.json(chartData);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
