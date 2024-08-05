@@ -43,8 +43,8 @@ jobs:
             echo "Listing files in the project directory"
             ls -la /home/ubuntu/projects
             echo "Listing files in the GoChapaa-backend directory"
-            ls -la /home/ubuntu/projects/GoChapaa-backend
-            cd /home/ubuntu/projects/GoChapaa-backend
+            ls -la /home/ubuntu/projects/donor-project-backend
+            cd /home/ubuntu/projects/donor-project-backend
             git pull origin main
             npm install
             npx sequelize-cli db:migrate
