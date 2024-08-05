@@ -13,7 +13,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
-          token: ${{ secrets.SECRET_TOKEN }}
+          token: ${{ secrets.TOKEN }}
 
       - name: Set up Node.js using NVM
         run: |
